@@ -287,7 +287,10 @@
             html += `<h2><span class="num">فصل ${i + 1}</span>${line.replace('## ', '')}</h2>`;
           } else if (line.startsWith('[IMAGE]')) {
             const imgNum = i + 1;
-            html += `<img src="images/${imgNum}.jpg" alt="فصل ${imgNum}" loading="lazy">`;
+            // ✅ کد هوشمند: اول png، اگه نبود jpg
+            html += `<img src="images/${imgNum}.png" 
+                     onerror="this.onerror=null;this.src='images/${imgNum}.jpg';" 
+                     alt="فصل ${imgNum}" loading="lazy">`;
           } else if (line.startsWith('> ')) {
             html += `<p class="quote">${line.replace('> ', '')}</p>`;
           } else if (line.startsWith('~ ')) {
@@ -326,4 +329,4 @@
 </script>
 
 </body>
- </html>
+</html>
