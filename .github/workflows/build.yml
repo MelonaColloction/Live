@@ -72,19 +72,18 @@ jobs:
         run: |
           test -f index.html
           test -f story.txt
+          test -f icon.png
+          test -d images
           rm -rf www
           mkdir -p www
           cp index.html www/index.html
           cp story.txt www/story.txt
-
-          # کپی همه عکس‌ها از ریشه (به جز icon.png)
-          find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) ! -name "icon.png" -exec cp {} www/ \;
-
-          # اگه پوشه images هم بود
-          if [ -d "images" ]; then
-            cp -r images www/images
-            echo "Images folder copied."
-          fi
+          cp -r images www/images
+          echo "✅ Files copied."
+          echo "--- Contents of www ---"
+          ls -la www
+          echo "--- Contents of www/images ---"
+          ls -la www/images
 
           # ==========================================
           # تزریق کد قفل اثر انگشت به index.html
@@ -166,13 +165,9 @@ jobs:
           print("✅ Biometric lock injected into www/index.html")
           PY
 
-          echo "App prepared."
-          echo "--- Contents of www ---"
-          ls -la www
-
 
       # ==========================================
-      # CREATE PACKAGE.JSON (with biometric plugin)
+      # CREATE PACKAGE.JSON
       # ==========================================
       - name: Create package.json
         run: |
@@ -588,7 +583,7 @@ jobs:
 
 
       # ==========================================
-      # BUILD APK
+      # BUILD APK (فقط APK)
       # ==========================================
       - name: Build Release APK
         working-directory: android
@@ -599,22 +594,13 @@ jobs:
 
 
       # ==========================================
-      # BUILD AAB
-      # ==========================================
-      - name: Build Release AAB
-        working-directory: android
-        run: ./gradlew bundleRelease --no-daemon
-
-
-      # ==========================================
-      # PREPARE RELEASE
+      # PREPARE RELEASE (فقط APK)
       # ==========================================
       - name: Prepare release
         run: |
           mkdir -p release
           cp android/app/build/outputs/apk/release/app-release.apk release/Story-of-an-Empire.apk
-          cp android/app/build/outputs/bundle/release/app-release.aab release/Story-of-an-Empire.aab
-          echo "Release prepared."
+          echo "Release prepared (APK only)."
 
 
       # ==========================================
