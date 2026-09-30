@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>داستان زندگی من</title>
+<title>Story of an Empire</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,7 +16,6 @@
     overflow-x: hidden;
   }
 
-  /* ستاره‌های پس‌زمینه */
   body::before {
     content: '';
     position: fixed;
@@ -38,7 +37,6 @@
     100% { opacity: 0.6; }
   }
 
-  /* هدر */
   header {
     position: relative;
     z-index: 1;
@@ -68,7 +66,6 @@
     font-weight: 300;
   }
 
-  /* منوی فصل‌ها */
   .chapters-nav {
     position: sticky;
     top: 0;
@@ -100,7 +97,6 @@
     border-color: rgba(240,192,64,0.4);
   }
 
-  /* کانتینر اصلی */
   main {
     position: relative;
     z-index: 1;
@@ -109,7 +105,6 @@
     padding: 40px 20px 80px;
   }
 
-  /* فصل */
   .chapter {
     margin-bottom: 90px;
     opacity: 0;
@@ -146,34 +141,19 @@
     letter-spacing: 2px;
   }
 
-  /* جای عکس */
-  .chapter .image-placeholder {
+  .chapter img {
     width: 100%;
-    aspect-ratio: 16/9;
-    background: rgba(255,255,255,0.03);
-    border: 2px dashed rgba(240,192,64,0.25);
     border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #555;
     margin: 25px 0;
-    font-size: 0.95em;
-    transition: all 0.4s;
+    display: block;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
   }
-  .chapter .image-placeholder:hover {
-    border-color: rgba(240,192,64,0.6);
-    background: rgba(240,192,64,0.05);
-    color: #f0c040;
-  }
-  .chapter .image-placeholder .icon {
-    font-size: 2.5em;
-    margin-bottom: 8px;
-    opacity: 0.5;
+  .chapter img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 50px rgba(240,192,64,0.2);
   }
 
-  /* پاراگراف‌ها */
   .chapter p {
     font-size: 1.1em;
     color: #d0d0d0;
@@ -196,18 +176,12 @@
     line-height: 1.8;
   }
 
-  .chapter p.highlight {
-    color: #ff8a8a;
-    font-weight: 500;
-  }
-
   .chapter p.soft {
     color: #888;
     font-style: italic;
     font-size: 1em;
   }
 
-  /* فصل آخر */
   .final {
     text-align: center;
     padding: 50px 20px;
@@ -234,7 +208,6 @@
     50% { opacity: 0.5; }
   }
 
-  /* فوتر */
   footer {
     text-align: center;
     padding: 40px 20px;
@@ -243,7 +216,6 @@
     border-top: 1px solid rgba(255,255,255,0.05);
   }
 
-  /* اسکرول بار */
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-track { background: #0a0a0f; }
   ::-webkit-scrollbar-thumb {
@@ -251,7 +223,6 @@
     border-radius: 5px;
   }
 
-  /* موبایل */
   @media (max-width: 600px) {
     header { padding: 50px 15px 40px; }
     main { padding: 20px 15px 60px; }
@@ -283,18 +254,19 @@
 </nav>
 
 <main id="story">
-  <!-- محتوا از story.txt لود می‌شود -->
   <p style="text-align:center; color:#666;">در حال بارگذاری داستان...</p>
 </main>
 
 <footer>
-  © داستان زندگی من — ادامه دارد...
+  © Story of an Empire — ادامه دارد...
 </footer>
 
 <script>
-  // لود داستان از فایل txt
   fetch('story.txt')
-    .then(res => res.text())
+    .then(res => {
+      if (!res.ok) throw new Error('not found');
+      return res.text();
+    })
     .then(text => {
       const main = document.getElementById('story');
       main.innerHTML = '';
@@ -315,14 +287,11 @@
           if (line.startsWith('## ')) {
             html += `<h2><span class="num">فصل ${i + 1}</span>${line.replace('## ', '')}</h2>`;
           } else if (line.startsWith('[IMAGE]')) {
-            html += `<div class="image-placeholder">
-              <div class="icon">🖼️</div>
-              <div>جای عکس — ${line.replace('[IMAGE]', '').trim() || 'اینجا عکس بذار'}</div>
-            </div>`;
+            // عکس با شماره فصل
+            const imgNum = i + 1;
+            html += `<img src="images/${imgNum}.jpg" alt="فصل ${imgNum}" loading="lazy">`;
           } else if (line.startsWith('> ')) {
             html += `<p class="quote">${line.replace('> ', '')}</p>`;
-          } else if (line.startsWith('* ')) {
-            html += `<p class="highlight">${line.replace('* ', '')}</p>`;
           } else if (line.startsWith('~ ')) {
             html += `<p class="soft">${line.replace('~ ', '')}</p>`;
           } else {
@@ -356,9 +325,9 @@
     })
     .catch(() => {
       document.getElementById('story').innerHTML =
-        '<p style="text-align:center; color:#ff6b6b;">⚠️ فایل story.txt پیدا نشد. لطفاً آن را در کنار index.html قرار بده.</p>';
+        '<p style="text-align:center; color:#ff6b6b;">⚠️ فایل story.txt پیدا نشد.</p>';
     });
 </script>
 
 </body>
-  </html>
+</html>
