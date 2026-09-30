@@ -66,7 +66,7 @@ jobs:
 
 
       # ==========================================
-      # PREPARE APP
+      # PREPARE APP + BIOMETRIC LOCK INJECTION
       # ==========================================
       - name: Prepare app
         run: |
@@ -76,21 +76,103 @@ jobs:
           mkdir -p www
           cp index.html www/index.html
           cp story.txt www/story.txt
+
+          # کپی همه عکس‌ها از ریشه (به جز icon.png)
+          find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) ! -name "icon.png" -exec cp {} www/ \;
+
+          # اگه پوشه images هم بود
           if [ -d "images" ]; then
             cp -r images www/images
-            echo "Images copied."
+            echo "Images folder copied."
           fi
-          if [ -f "icon.png" ]; then
-            cp icon.png www/icon.png
-            echo "Icon copied."
-          fi
+
+          # ==========================================
+          # تزریق کد قفل اثر انگشت به index.html
+          # ==========================================
+          python3 - <<'PY'
+          with open("www/index.html", "r", encoding="utf-8") as f:
+              html = f.read()
+
+          lock_code = '''
+          <!-- ===== Biometric Lock (Auto-injected) ===== -->
+          <div id="bio-lock" style="position:fixed;inset:0;background:#0a0a0f;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f0c040;font-family:Tahoma,sans-serif;text-align:center;padding:20px;">
+            <div style="font-size:5em;margin-bottom:20px;">🔐</div>
+            <h2 style="font-size:1.5em;margin-bottom:10px;color:#f0c040;">Story of an Empire</h2>
+            <p style="color:#888;margin-bottom:30px;">برای ورود، اثر انگشت خود را اسکن کنید</p>
+            <button id="bio-unlock-btn" style="background:linear-gradient(135deg,#f0c040,#ff6b6b);border:none;color:#0a0a0f;padding:15px 40px;font-size:1.1em;font-weight:700;border-radius:30px;cursor:pointer;font-family:inherit;box-shadow:0 10px 30px rgba(240,192,64,0.3);">🔓 باز کردن قفل</button>
+            <p id="bio-status" style="color:#666;margin-top:20px;font-size:0.9em;"></p>
+          </div>
+
+          <script>
+          (async function(){
+            var lock = document.getElementById('bio-lock');
+            var btn = document.getElementById('bio-unlock-btn');
+            var status = document.getElementById('bio-status');
+
+            if (typeof Capacitor === 'undefined') {
+              if (lock) lock.style.display = 'none';
+              return;
+            }
+
+            try {
+              var NativeBiometric = Capacitor.Plugins.NativeBiometric;
+              if (!NativeBiometric) {
+                if (lock) lock.style.display = 'none';
+                return;
+              }
+
+              var avail = await NativeBiometric.isAvailable();
+              if (!avail.isAvailable) {
+                if (lock) lock.style.display = 'none';
+                return;
+              }
+
+              async function unlock() {
+                try {
+                  status.textContent = 'در حال اسکن...';
+                  await NativeBiometric.verifyIdentity({
+                    reason: 'برای ورود به اپ، هویت خود را تأیید کنید',
+                    title: 'ورود امن',
+                    subtitle: 'Story of an Empire',
+                    description: 'اثر انگشت خود را روی سنسور قرار دهید'
+                  });
+                  lock.style.transition = 'opacity 0.5s';
+                  lock.style.opacity = '0';
+                  setTimeout(function(){ lock.remove(); }, 500);
+                } catch (e) {
+                  status.textContent = '❌ تأیید نشد. دوباره تلاش کنید.';
+                }
+              }
+
+              unlock();
+              btn.addEventListener('click', unlock);
+
+            } catch (e) {
+              if (lock) lock.style.display = 'none';
+            }
+          })();
+          </script>
+          <!-- ===== End Biometric Lock ===== -->
+          '''
+
+          if "</body>" in html:
+              html = html.replace("</body>", lock_code + "\n</body>")
+          else:
+              html += lock_code
+
+          with open("www/index.html", "w", encoding="utf-8") as f:
+              f.write(html)
+
+          print("✅ Biometric lock injected into www/index.html")
+          PY
+
           echo "App prepared."
           echo "--- Contents of www ---"
           ls -la www
 
 
       # ==========================================
-      # CREATE PACKAGE.JSON
+      # CREATE PACKAGE.JSON (with biometric plugin)
       # ==========================================
       - name: Create package.json
         run: |
@@ -101,7 +183,8 @@ jobs:
             "private": true,
             "dependencies": {
               "@capacitor/core": "^7.4.0",
-              "@capacitor/android": "^7.4.0"
+              "@capacitor/android": "^7.4.0",
+              "@capgo/capacitor-native-biometric": "^7.0.0"
             },
             "devDependencies": {
               "@capacitor/cli": "^7.4.0"
@@ -404,7 +487,7 @@ jobs:
 
 
       # ==========================================
-      # ADD PERMISSIONS (INTERNET)
+      # ADD PERMISSIONS (INTERNET + BIOMETRIC)
       # ==========================================
       - name: Add permissions
         run: |
@@ -416,7 +499,9 @@ jobs:
 
           extras = ""
           for perm in [
-              "android.permission.INTERNET"
+              "android.permission.INTERNET",
+              "android.permission.USE_BIOMETRIC",
+              "android.permission.USE_FINGERPRINT"
           ]:
               if perm not in text:
                   extras += f'    <uses-permission android:name="{perm}" />\n'
@@ -427,7 +512,7 @@ jobs:
           with open(path, "w", encoding="utf-8") as f:
               f.write(text)
 
-          print("INTERNET permission added.")
+          print("Permissions added (INTERNET + USE_BIOMETRIC + USE_FINGERPRINT).")
           PY
 
 
@@ -446,19 +531,10 @@ jobs:
           python3 - <<'PY'
           import os
 
-          extensions = (".png", ".jpg", ".jpeg", ".webp")
-
-          icon_file = None
           if os.path.exists("icon.png"):
               icon_file = "icon.png"
           else:
-              files = [f for f in os.listdir(".")
-                       if os.path.isfile(f) and f.lower().endswith(extensions)]
-              if files:
-                  icon_file = files[0]
-
-          if not icon_file:
-              raise SystemExit("❌ No launcher icon found! Please add icon.png")
+              raise SystemExit("❌ icon.png not found in root! Please add icon.png")
 
           print("=" * 50)
           print("LAUNCHER ICON:", icon_file)
@@ -509,17 +585,6 @@ jobs:
         run: |
           rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
-
-
-      # ==========================================
-      # VERIFY
-      # ==========================================
-      - name: Verify icons
-        run: |
-          echo "=========================================="
-          echo "LAUNCHER ICONS"
-          echo "=========================================="
-          find android/app/src/main/res -name "ic_launcher*.png" | sort
 
 
       # ==========================================
