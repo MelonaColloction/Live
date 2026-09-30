@@ -271,7 +271,6 @@
       const main = document.getElementById('story');
       main.innerHTML = '';
 
-      // جدا کردن فصل‌ها با ---
       const chapters = text.split('---').filter(c => c.trim());
 
       chapters.forEach((ch, i) => {
@@ -287,7 +286,6 @@
           if (line.startsWith('## ')) {
             html += `<h2><span class="num">فصل ${i + 1}</span>${line.replace('## ', '')}</h2>`;
           } else if (line.startsWith('[IMAGE]')) {
-            // عکس با شماره فصل
             const imgNum = i + 1;
             html += `<img src="images/${imgNum}.jpg" alt="فصل ${imgNum}" loading="lazy">`;
           } else if (line.startsWith('> ')) {
@@ -303,7 +301,6 @@
         main.appendChild(div);
       });
 
-      // انیمیشن اسکرول
       const observer = new IntersectionObserver(entries => {
         entries.forEach(e => {
           if (e.isIntersecting) e.target.classList.add('visible');
@@ -312,7 +309,6 @@
 
       document.querySelectorAll('.chapter').forEach(c => observer.observe(c));
 
-      // فصل آخر
       const finalDiv = document.createElement('div');
       finalDiv.className = 'final';
       finalDiv.innerHTML = `
@@ -330,4 +326,4 @@
 </script>
 
 </body>
-</html>
+ </html>
