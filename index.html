@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داستان زندگی من</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: #0a0a0f;
+    color: #e8e8e8;
+    line-height: 2.1;
+    overflow-x: hidden;
+  }
+
+  /* ستاره‌های پس‌زمینه */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+      radial-gradient(1px 1px at 60% 70%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 80% 20%, #ffd700, transparent),
+      radial-gradient(1px 1px at 40% 90%, #fff, transparent),
+      radial-gradient(2px 2px at 90% 60%, #fff, transparent),
+      radial-gradient(1px 1px at 10% 80%, #ffd700, transparent);
+    background-size: 200% 200%;
+    animation: twinkle 8s infinite alternate;
+    z-index: 0;
+    opacity: 0.4;
+  }
+  @keyframes twinkle {
+    0% { opacity: 0.2; }
+    100% { opacity: 0.6; }
+  }
+
+  /* هدر */
+  header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(180deg, rgba(240,192,64,0.08), transparent);
+  }
+
+  header h1 {
+    font-size: clamp(2em, 5vw, 3.5em);
+    font-weight: 800;
+    background: linear-gradient(135deg, #f0c040, #ff6b6b, #f0c040);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 15px;
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { filter: drop-shadow(0 0 5px rgba(240,192,64,0.3)); }
+    to { filter: drop-shadow(0 0 20px rgba(240,192,64,0.6)); }
+  }
+
+  header p {
+    color: #888;
+    font-size: 1.1em;
+    font-weight: 300;
+  }
+
+  /* منوی فصل‌ها */
+  .chapters-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    border-bottom: 1px solid rgba(240,192,64,0.15);
+    scrollbar-width: none;
+  }
+  .chapters-nav::-webkit-scrollbar { display: none; }
+
+  .chapters-nav a {
+    color: #aaa;
+    text-decoration: none;
+    padding: 8px 18px;
+    border-radius: 30px;
+    white-space: nowrap;
+    font-size: 0.9em;
+    transition: all 0.3s;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .chapters-nav a:hover {
+    background: rgba(240,192,64,0.15);
+    color: #f0c040;
+    border-color: rgba(240,192,64,0.4);
+  }
+
+  /* کانتینر اصلی */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* فصل */
+  .chapter {
+    margin-bottom: 90px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  .chapter.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .chapter h2 {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #f0c040;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chapter h2::before {
+    content: '';
+    width: 4px;
+    height: 32px;
+    background: linear-gradient(180deg, #f0c040, #ff6b6b);
+    border-radius: 2px;
+  }
+
+  .chapter .num {
+    font-size: 0.55em;
+    color: #666;
+    font-weight: 400;
+    letter-spacing: 2px;
+  }
+
+  /* جای عکس */
+  .chapter .image-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: rgba(255,255,255,0.03);
+    border: 2px dashed rgba(240,192,64,0.25);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    margin: 25px 0;
+    font-size: 0.95em;
+    transition: all 0.4s;
+  }
+  .chapter .image-placeholder:hover {
+    border-color: rgba(240,192,64,0.6);
+    background: rgba(240,192,64,0.05);
+    color: #f0c040;
+  }
+  .chapter .image-placeholder .icon {
+    font-size: 2.5em;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+
+  /* پاراگراف‌ها */
+  .chapter p {
+    font-size: 1.1em;
+    color: #d0d0d0;
+    margin-bottom: 18px;
+    text-align: justify;
+    font-weight: 300;
+  }
+
+  .chapter p.quote {
+    font-size: 1.25em;
+    color: #f0c040;
+    font-weight: 600;
+    text-align: center;
+    padding: 20px;
+    margin: 25px 0;
+    border-right: 3px solid #f0c040;
+    border-left: 3px solid #f0c040;
+    background: rgba(240,192,64,0.05);
+    border-radius: 10px;
+    line-height: 1.8;
+  }
+
+  .chapter p.highlight {
+    color: #ff8a8a;
+    font-weight: 500;
+  }
+
+  .chapter p.soft {
+    color: #888;
+    font-style: italic;
+    font-size: 1em;
+  }
+
+  /* فصل آخر */
+  .final {
+    text-align: center;
+    padding: 50px 20px;
+    border-top: 1px solid rgba(240,192,64,0.2);
+    border-bottom: 1px solid rgba(240,192,64,0.2);
+    margin-top: 60px;
+  }
+  .final p {
+    font-size: 1.3em;
+    color: #f0c040;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+  .final .end {
+    font-size: 1.5em;
+    color: #ff6b6b;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin-top: 30px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* فوتر */
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: #444;
+    font-size: 0.9em;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* اسکرول بار */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #0a0a0f; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f0c040, #ff6b6b);
+    border-radius: 5px;
+  }
+
+  /* موبایل */
+  @media (max-width: 600px) {
+    header { padding: 50px 15px 40px; }
+    main { padding: 20px 15px 60px; }
+    .chapter { margin-bottom: 60px; }
+    .chapter h2 { font-size: 1.4em; }
+    .chapter p { font-size: 1em; }
+    .chapter p.quote { font-size: 1.1em; padding: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📖 داستان زندگی من</h1>
+  <p>روایتی واقعی از یک پسر، یک رویا، و یک امپراتوری</p>
+</header>
+
+<nav class="chapters-nav">
+  <a href="#ch1">آغاز</a>
+  <a href="#ch2">رویا</a>
+  <a href="#ch3">دنیای جدید</a>
+  <a href="#ch4">سه ستاره</a>
+  <a href="#ch5">پریا</a>
+  <a href="#ch6">دیلان</a>
+  <a href="#ch7">شکست‌ها</a>
+  <a href="#ch8">Foxeggs</a>
+  <a href="#ch9">حالا</a>
+  <a href="#ch10">جمله</a>
+</nav>
+
+<main id="story">
+  <!-- محتوا از story.txt لود می‌شود -->
+  <p style="text-align:center; color:#666;">در حال بارگذاری داستان...</p>
+</main>
+
+<footer>
+  © داستان زندگی من — ادامه دارد...
+</footer>
+
+<script>
+  // لود داستان از فایل txt
+  fetch('story.txt')
+    .then(res => res.text())
+    .then(text => {
+      const main = document.getElementById('story');
+      main.innerHTML = '';
+
+      // جدا کردن فصل‌ها با ---
+      const chapters = text.split('---').filter(c => c.trim());
+
+      chapters.forEach((ch, i) => {
+        const div = document.createElement('section');
+        div.className = 'chapter';
+        div.id = 'ch' + (i + 1);
+
+        const lines = ch.trim().split('\n').filter(l => l.trim());
+        let html = '';
+
+        lines.forEach(line => {
+          line = line.trim();
+          if (line.startsWith('## ')) {
+            html += `<h2><span class="num">فصل ${i + 1}</span>${line.replace('## ', '')}</h2>`;
+          } else if (line.startsWith('[IMAGE]')) {
+            html += `<div class="image-placeholder">
+              <div class="icon">🖼️</div>
+              <div>جای عکس — ${line.replace('[IMAGE]', '').trim() || 'اینجا عکس بذار'}</div>
+            </div>`;
+          } else if (line.startsWith('> ')) {
+            html += `<p class="quote">${line.replace('> ', '')}</p>`;
+          } else if (line.startsWith('* ')) {
+            html += `<p class="highlight">${line.replace('* ', '')}</p>`;
+          } else if (line.startsWith('~ ')) {
+            html += `<p class="soft">${line.replace('~ ', '')}</p>`;
+          } else {
+            html += `<p>${line}</p>`;
+          }
+        });
+
+        div.innerHTML = html;
+        main.appendChild(div);
+      });
+
+      // انیمیشن اسکرول
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) e.target.classList.add('visible');
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.chapter').forEach(c => observer.observe(c));
+
+      // فصل آخر
+      const finalDiv = document.createElement('div');
+      finalDiv.className = 'final';
+      finalDiv.innerHTML = `
+        <p>این داستان زندگی من است.</p>
+        <p>نه یک داستان ساختگی. نه یک فیلم.</p>
+        <p>این، فقط آغاز فصل اول است.</p>
+        <div class="end">ادامه دارد...</div>
+      `;
+      main.appendChild(finalDiv);
+    })
+    .catch(() => {
+      document.getElementById('story').innerHTML =
+        '<p style="text-align:center; color:#ff6b6b;">⚠️ فایل story.txt پیدا نشد. لطفاً آن را در کنار index.html قرار بده.</p>';
+    });
+</script>
+
+</body>
+  </html>
